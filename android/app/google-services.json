@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "262335133582",
+    "project_id": "sportmate-ed9db",
+    "storage_bucket": "sportmate-ed9db.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:262335133582:android:70ff570ca1335c794196df",
+        "android_client_info": {
+          "package_name": "com.sm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxmnEi_3M-jX9_ZG2iIY2FeWAxXUB26Pg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
