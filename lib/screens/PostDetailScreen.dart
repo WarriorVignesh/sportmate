@@ -138,99 +138,118 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         return Colors.black;
     }
   }
-
-  @override
-  Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
-
-    return Scaffold(
-      appBar: AppBar(title: Text("Post Details")),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('posts').doc(widget.postId).get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text("Error loading post details"));
-          }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
-            return Center(child: Text("Post not found"));
-          }
-
-          var post = snapshot.data!.data() as Map<String, dynamic>;
-          DateTime? postDate = post['date'] != null
-              ? (post['date'] as Timestamp).toDate()
-              : null;
-          String tag = postDate != null ? determineTag(postDate) : "Date not set";
-          int interestCount = post['interestCount'] ?? 0;
-          String postCreatorId = post['creatorId'] ?? "";
-
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ListView(
-              children: [
-                post['posterUrl'] != null && (post['posterUrl'] ).isNotEmpty
-                    ? Image.network(
-                        post['posterUrl'],
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.broken_image, size: 100, color: Colors.grey);
-                        },
-                      )
-                    : Icon(Icons.image_not_supported, size: 100, color: Colors.grey),
-                SizedBox(height: 10),
-                Text(post['title'] ?? "No Title", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                SizedBox(height: 10),
-                if (postDate != null)
-                  Text(
-                    "Date: ${DateFormat.yMMMd().add_jm().format(postDate)}",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                Text(
-                  "Status: $tag",
-                  style: TextStyle(fontSize: 16, color: getStatusColor(tag)),
-                ),
-                SizedBox(height: 10),
-                Text(post['description'] ?? "No description available."),
-                SizedBox(height: 10),
-                Text("Organizer: ${post['organizer'] ?? "Unknown"}"),
-                SizedBox(height: 10),
-                Text("Location: ${post['location'] ?? "Not provided"}"),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      child: Text("Mark Interested ($interestCount)"),
-                      onPressed: () async {
-                        await markInterest(widget.postId);
-                      },
-                    ),
-                    ElevatedButton(
-                      child: Text("Register"),
-                      onPressed: (currentUser != null && tag != "Past Completed")
-                          ? () async {
-                              await _showInterstitialAd();
-                              await registerForTournament(
-                                  widget.postId, currentUser.uid, postCreatorId);
-                            }
-                          : null,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-      bottomNavigationBar: _isBannerAdLoaded
-          ? Container(
-              height: _bannerAd.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd),
-            )
-          : SizedBox.shrink(),
-    );
+  DateTime? parseStartDate(dynamic startDate) {
+  if (startDate is Timestamp) {
+    return startDate.toDate();
+  } else if (startDate is String) {
+    try {
+      return DateTime.parse(startDate);
+    } catch (e) {
+      // Handle invalid date string formats
+      return null;
+    }
   }
+  return null; // Return null if the type is unrecognized
+}
+
+@override
+Widget build(BuildContext context) {
+  final currentUser = FirebaseAuth.instance.currentUser;
+
+  return Scaffold(
+    appBar: AppBar(title: Text("Post Details")),
+    body: FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('posts').doc(widget.postId).get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text("Error loading post details"));
+        }
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return Center(child: Text("Post not found"));
+        }
+
+        var post = snapshot.data!.data() as Map<String, dynamic>;
+        DateTime? postDate = parseStartDate(post['startDate']);
+
+
+        // Retrieve status directly from Firestore
+        String tag = post['status'] ?? "Status not set"; // Use saved status
+        int interestCount = post['interestCount'] ?? 0;
+        String postCreatorId = post['creatorId'] ?? "";
+
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListView(
+            children: [post['fileUrl'] != null && post['fileUrl'].isNotEmpty
+    ? SizedBox(
+        height: 150, // Adjust height as needed
+        width: double.infinity, // Optional: Ensure the image spans the available width
+        child: Image.network(
+          post['fileUrl'],
+          fit: BoxFit.contain, // Adjust fit as needed (contain, cover, fill, etc.)
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(Icons.broken_image, size: 100, color: Colors.grey);
+          },
+        ),
+      )
+    : Icon(Icons.image_not_supported, size: 100, color: Colors.grey),
+
+              SizedBox(height: 10),
+              Text(post['title'] ?? "No Title", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              SizedBox(height: 10),
+              if (postDate != null)
+                Text(
+                  "Start Date: ${DateFormat.yMMMd().add_jm().format(postDate)}",
+                  style: TextStyle(fontSize: 16),
+                ),
+              Text(
+                "Status: $tag",
+                style: TextStyle(fontSize: 16, color: getStatusColor(tag)),
+              ),
+              SizedBox(height: 10),
+              Text(post['description'] ?? "No description available."),
+              SizedBox(height: 10),
+              Text("Organizer: ${post['organizer'] ?? "Unknown"}"),
+              SizedBox(height: 10),
+              Text("Location: ${post['location'] ?? "Not provided"}"),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    child: Text("Mark Interested ($interestCount)"),
+                    onPressed: () async {
+                      await markInterest(widget.postId);
+                    },
+                  ),
+                  ElevatedButton(
+                    child: Text("Register"),
+                    onPressed: (currentUser != null && tag != "Past Completed")
+                        ? () async {
+                            await _showInterstitialAd();
+                            await registerForTournament(widget.postId, currentUser.uid, postCreatorId);
+                          }
+                        : null,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+    bottomNavigationBar: _isBannerAdLoaded
+        ? Container(
+            height: _bannerAd.size.height.toDouble(),
+            child: AdWidget(ad: _bannerAd),
+          )
+        : SizedBox.shrink(),
+  );
+}
+
 
   @override
   void dispose() {
