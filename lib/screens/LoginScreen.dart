@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sportmate/screens/FeedScreen.dart';
+import 'package:sportmate/screens/RegisterScreen.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -143,6 +144,18 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: Text("Login"),
                         ),
+                        SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder:(context)=> RegisterScreen()),
+                      );
+                    },
+                    icon: Icon(Icons.group_add),
+                    label:
+                      Text('Register'),)
+              
                 ],
               ),
             ),
@@ -192,17 +205,89 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class ResetPasswordScreen extends StatelessWidget {
+
+
+class ResetPasswordScreen extends StatefulWidget {
+  @override
+  _ResetPasswordScreenState createState() => _ResetPasswordScreenState();
+}
+
+class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _isLoading = false;
+  String? _message;
+
+  Future<void> _resetPassword() async {
+    String email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      setState(() {
+        _message = "Please enter your email address.";
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _message = null; // Clear previous messages
+    });
+
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      setState(() {
+        _message = "Password reset email sent! Check your inbox.";
+      });
+    } catch (e) {
+      setState(() {
+        _message = "Error: ${e.toString()}";
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Reset Password"),
       ),
-      body: Center(
-        child: Text("Reset Password Functionality Coming Soon"),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  hintText: "Enter your registered email",
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _resetPassword,
+                child: Text(_isLoading ? "Sending..." : "Send Reset Link"),
+              ),
+              SizedBox(height: 20),
+              if (_message != null)
+                Text(
+                  _message!,
+                  style: TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
+
 

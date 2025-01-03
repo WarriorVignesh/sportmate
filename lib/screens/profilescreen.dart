@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:sportmate/screens/team_registeration.dart';
 import 'package:video_player/video_player.dart';
 import 'package:sportmate/screens/LoginScreen.dart';
 
@@ -187,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   SizedBox(height: 20),
                   Text(
-                    'Name: ${userData['name'] ?? 'N/A'}',
+                    'Name: ${userData['username'] ?? 'N/A'}',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 10),
@@ -202,7 +203,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     label: _isUploading
                         ? Text('Uploading...')
                         : Text('Upload Skill Video'),
-                  ),
+                  ), SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder:(context)=> TeamRegistrationScreen()),
+                      );
+                    },
+                    icon: Icon(Icons.group_add),
+                    label:
+                      Text('Register Team'),),
                   SizedBox(height: 20),
                   userData['skillVideo'] != null
                       ? Column(
@@ -243,9 +254,18 @@ class _VideoPreviewState extends State<VideoPreview> {
   @override
   void initState() {
     super.initState();
+    // ignore: deprecated_member_use
     _controller = VideoPlayerController.network(widget.videoUrl)
       ..initialize().then((_) {
-        setState(() {}); // Refresh state to display the video
+        if (mounted) {
+          setState(() {}); // Refresh state to display the video
+        }
+      })
+      ..setLooping(true) // Enable looping
+      ..addListener(() {
+        if (_controller.value.hasError) {
+          print('Video player error: ${_controller.value.errorDescription}');
+        }
       });
   }
 
@@ -258,9 +278,26 @@ class _VideoPreviewState extends State<VideoPreview> {
   @override
   Widget build(BuildContext context) {
     return _controller.value.isInitialized
-        ? AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            child: VideoPlayer(_controller),
+        ? Column(
+            children: [
+              AspectRatio(
+                aspectRatio: _controller.value.aspectRatio,
+                child: VideoPlayer(_controller),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(_controller.value.isPlaying ? Icons.pause : Icons.play_arrow),
+                    onPressed: () {
+                      setState(() {
+                        _controller.value.isPlaying ? _controller.pause() : _controller.play();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ],
           )
         : Center(child: CircularProgressIndicator());
   }

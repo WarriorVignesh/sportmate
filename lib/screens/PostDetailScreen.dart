@@ -6,8 +6,10 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final String postId;
+  final String distance; // Add distance as a parameter
 
-  PostDetailScreen({required this.postId});
+
+  PostDetailScreen({required this.postId,required this.distance});
 
   @override
   _PostDetailScreenState createState() => _PostDetailScreenState();
@@ -152,14 +154,37 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   return null; // Return null if the type is unrecognized
 }
 
+  Future<Map<String, dynamic>?> _fetchPostDetails(String postId) async {
+    try {
+      // Fetch from both collections simultaneously
+      final postsFuture = FirebaseFirestore.instance.collection('posts').doc(postId).get();
+      final teamPostsFuture = FirebaseFirestore.instance.collection('teamPosts').doc(postId).get();
+
+      // Wait for both futures to complete
+      final snapshots = await Future.wait([postsFuture, teamPostsFuture]);
+
+      // Check if the post exists in either collection
+      for (final snapshot in snapshots) {
+        if (snapshot.exists) {
+          return snapshot.data() as Map<String, dynamic>;
+        }
+      }
+
+      // Post not found in either collection
+      return null;
+    } catch (e) {
+      print("Error fetching post details: $e");
+      return null;
+    }
+  }
 @override
 Widget build(BuildContext context) {
   final currentUser = FirebaseAuth.instance.currentUser;
 
   return Scaffold(
     appBar: AppBar(title: Text("Post Details")),
-    body: FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('posts').doc(widget.postId).get(),
+   body: FutureBuilder<Map<String, dynamic>?>(
+        future: _fetchPostDetails(widget.postId), 
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -167,11 +192,11 @@ Widget build(BuildContext context) {
         if (snapshot.hasError) {
           return Center(child: Text("Error loading post details"));
         }
-        if (!snapshot.hasData || !snapshot.data!.exists) {
+        if (!snapshot.hasData || snapshot.data==null) {
           return Center(child: Text("Post not found"));
         }
 
-        var post = snapshot.data!.data() as Map<String, dynamic>;
+        var post = snapshot.data!;
         DateTime? postDate = parseStartDate(post['startDate']);
 
 
@@ -214,7 +239,11 @@ Widget build(BuildContext context) {
               SizedBox(height: 10),
               Text("Organizer: ${post['organizer'] ?? "Unknown"}"),
               SizedBox(height: 10),
-              Text("Location: ${post['location'] ?? "Not provided"}"),
+              Text("Location: ${post['location'] ?? "Not provided"}"), SizedBox(height: 10),
+                Text(
+                  "Distance: ${widget.distance}", // Display the distance
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
               SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

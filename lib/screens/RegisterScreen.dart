@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sportmate/auth_service.dart';
+import 'package:sportmate/screens/team_registeration.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -191,6 +192,17 @@ Future<void> setUserLoggedIn() async {
                         ),
                         child: Text("Register"),
                       ),
+                       SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder:(context)=> TeamRegistrationScreen()),
+                      );
+                    },
+                    icon: Icon(Icons.group_add),
+                    label:
+                      Text('Register Team'),)
               ],
             ),
           ),
