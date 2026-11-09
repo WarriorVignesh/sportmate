@@ -42,8 +42,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   final CloudinaryService cloudinaryService = CloudinaryService(
     cloudName: 'djusnuweg',
-    apiKey: '933488682224341',
-    apiSecret: 'JA13vW11QltMLD9clvAYPuOHScA',
     uploadPreset: 'sportsmate',
   );
 
@@ -179,7 +177,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       String collectionName =
           postAccountType == "team" ? 'teamPosts' : 'posts';
       
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) throw StateError('Sign in required.');
       await FirebaseFirestore.instance.collection(collectionName).add({
+        'creatorId': currentUser.uid,
+        'createdBy': currentUser.uid,
         'additionalInfo': additionalInfoController.text.trim(),
         'location': locationController.text.trim(),
         'startDate': startDateController.text.trim(),
