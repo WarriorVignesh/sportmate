@@ -242,10 +242,7 @@ Widget buildFeedPage() {
                         if (videoUrl.isNotEmpty)
                           AspectRatio(
                             aspectRatio: 16 / 9,
-                            child: VideoPlayerWidget(
-                              url: videoUrl,
-                              videoUrl: '',
-                            ),
+                            child: VideoPlayerWidget(videoUrl: videoUrl),
                           ),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -483,8 +480,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   final CloudinaryService cloudinaryService = CloudinaryService(
     cloudName: 'djusnuweg',
-    apiKey: '933488682224341',
-    apiSecret: 'JA13vW11QltMLD9clvAYPuOHScA',
     uploadPreset: 'sportsmate',
   );
 
