@@ -31,6 +31,7 @@ dependencies:
   video_player: ^2.5.0 
   http: ^1.2.2
   http_parser: ^4.0.1
+  mime: ^2.0.0
   flutter_dotenv: ^5.0.2
   google_mobile_ads: ^3.0.0
   firebase_messaging: ^14.9.4
@@ -50,5 +51,5 @@ flutter_icons:
 
 flutter:
   uses-material-design: true
-assets:
+  assets:
     - assets/images/sports_logo.png
